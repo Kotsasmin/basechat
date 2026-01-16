@@ -12,8 +12,6 @@ BaseChat is a modern, real-time chat application built as a side project, inspir
 
 *   **Real-time Messaging**: Instant message delivery using PocketBase subscriptions.
 *   **"Pooped to Death" Mechanic**: Messages with too many "poop" reactions get censored behind a warning overlay.
-*   **Infinite Scroll**: Seamlessly load message history by scrolling up.
-*   **Dark Mode**: A polished, deep grey theme inspired by Discord and modern developer tools.
 *   **User Authentication**: Secure login and registration handling.
 
 ## Getting Started
