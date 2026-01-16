@@ -2,11 +2,11 @@
 
 import { getAdminPb } from '@/lib/server-pocketbase';
 
-export async function toggleReaction(messageId: string, reactionValue: string) {
-    const pb = await getAdminPb();
+import { cookies } from 'next/headers';
 
+export async function toggleReaction(messageId: string, reactionValue: string) {
     try {
-        const { cookies } = await import('next/headers');
+        const pb = await getAdminPb();
         const cookieStore = await cookies();
         const pbAuth = cookieStore.get('pb_auth');
 

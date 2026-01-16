@@ -3,6 +3,7 @@
 import { pb } from '@/lib/pocketbase';
 import { sendMessage } from '@/actions/message';
 import { logout } from '@/actions/login';
+import { toggleReaction } from '@/actions/reaction';
 import { Message, User } from '@/lib/types';
 import { useEffect, useState, useRef, useActionState } from 'react';
 import { Input } from '@/components/ui/input';
@@ -162,7 +163,10 @@ export default function Chat({ initialUser, initialToken }: ChatProps) {
         await formAction(formData);
     };
 
+
     const handleReaction = async (messageId: string, emoji: string) => {
+        if (!user || !user.id) return;
+
         const reactionMap: Record<string, string> = {
             '👍': 'like',
             '😂': 'love',
@@ -171,10 +175,53 @@ export default function Chat({ initialUser, initialToken }: ChatProps) {
         };
         const apiValue = reactionMap[emoji] || 'like';
 
-        const { toggleReaction } = await import('@/actions/reaction');
-        const result = await toggleReaction(messageId, apiValue);
-        if (result?.error) {
-            console.error("Reaction failed:", result.error);
+        // Optimistic Update
+        const previousMessages = [...messages];
+        setMessages(prevMessages => {
+            return prevMessages.map(m => {
+                if (m.id !== messageId) return m;
+
+                const reactions = m.expand?.['reactions(message)'] || [];
+                const existingReactionIndex = reactions.findIndex((r: any) => r.user === user.id && r.value === apiValue);
+
+                let newReactions = [...reactions];
+                if (existingReactionIndex > -1) {
+                    // Remove
+                    newReactions.splice(existingReactionIndex, 1);
+                } else {
+                    // Add
+                    newReactions.push({
+                        id: 'optimistic-' + Date.now(),
+                        user: user.id,
+                        value: apiValue,
+                        message: messageId,
+                        created: new Date().toISOString(),
+                        updated: new Date().toISOString(),
+                        collectionId: '',
+                        collectionName: 'reactions',
+                        expand: {}
+                    });
+                }
+
+                return {
+                    ...m,
+                    expand: {
+                        ...m.expand,
+                        'reactions(message)': newReactions
+                    }
+                } as unknown as Message;
+            });
+        });
+
+        try {
+            const result = await toggleReaction(messageId, apiValue);
+            if (result?.error) {
+                console.error("Reaction failed:", result.error);
+                setMessages(previousMessages); // Revert
+            }
+        } catch (error) {
+            console.error("Reaction failed:", error);
+            setMessages(previousMessages); // Revert
         }
     };
 
