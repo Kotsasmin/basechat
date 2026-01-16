@@ -12,7 +12,7 @@ export default async function Home() {
     }
 
     const pb = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090');
-    pb.authStore.loadFromCookie(pbAuth.value);
+    pb.authStore.loadFromCookie(`pb_auth=${pbAuth.value}`);
 
     const model = pb.authStore.model;
     const token = pb.authStore.token;

@@ -23,7 +23,7 @@ export async function sendMessage(prevState: any, formData: FormData) {
         }
 
         const pbClient = new PocketBase(process.env.NEXT_PUBLIC_POCKETBASE_URL || 'http://127.0.0.1:8090');
-        pbClient.authStore.loadFromCookie(pbAuth.value);
+        pbClient.authStore.loadFromCookie(`pb_auth=${pbAuth.value}`);
 
         if (!pbClient.authStore.isValid) {
             return { error: 'Invalid session' };
