@@ -18,10 +18,17 @@ export async function getAdminPb() {
     }
 
     try {
-        await pb.admins.authWithPassword(email, password);
+        // PocketBase v0.23+ uses _superusers collection for admin authentication
+        await pb.collection('_superusers').authWithPassword(email, password);
         adminPb = pb;
-    } catch (error) {
-        throw new Error('PocketBase Admin Authentication Failed');
+    } catch {
+        try {
+            // Fallback for older PocketBase versions (< v0.23)
+            await pb.admins.authWithPassword(email, password);
+            adminPb = pb;
+        } catch (error) {
+            throw new Error('PocketBase Admin Authentication Failed');
+        }
     }
 
     return pb;
